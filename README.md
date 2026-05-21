@@ -1,7 +1,5 @@
-<<<<<<< HEAD
 # gateway-system
 分布式网关系统
-=======
 # 分布式高并发网关系统
 
 基于 C++20 协程与 Boost.Asio 的高性能网关服务器。
@@ -28,6 +26,7 @@ ninja -C build
 ./build/gateway_server [port]
 ```
 
+
 ## 测试
 
 ```bash
@@ -50,4 +49,3 @@ echo -e "PING\nQUIT" | nc localhost 8080
 - 单机 5-20 万空闲连接
 - 万级活跃连接低延迟
 - 多节点一致性哈希路由
->>>>>>> f4d84b2 (chore: initial project setup)
