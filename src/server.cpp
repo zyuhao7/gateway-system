@@ -1,5 +1,6 @@
 #include "server.hpp"
 #include "connection.hpp"
+#include "connection_manager.hpp"
 #include <iostream>
 
 namespace gateway {
@@ -25,15 +26,19 @@ asio::awaitable<void> Server::listen() {
 }
 
 asio::awaitable<void> Server::handle_client(tcp::socket socket) {
-    auto conn = std::make_shared<Connection>(std::move(socket), next_conn_id_++);
+    uint64_t conn_id = next_conn_id_++;
+    auto conn = std::make_shared<Connection>(std::move(socket), conn_id);
+
+    ConnectionManager::instance().add(conn_id, conn);
 
     try {
         co_await conn->start();
     } catch (const std::exception& e) {
-        std::cerr << "Connection " << conn->id() << " error: " << e.what() << std::endl;
+        std::cerr << "Connection " << conn_id << " error: " << e.what() << std::endl;
     }
 
-    std::cout << "Connection " << conn->id() << " closed" << std::endl;
+    ConnectionManager::instance().remove(conn_id);
+    std::cout << "Connection " << conn_id << " closed" << std::endl;
 }
 
 }

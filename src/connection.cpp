@@ -1,4 +1,5 @@
 #include "connection.hpp"
+#include "connection_manager.hpp"
 #include <iostream>
 #include <vector>
 
@@ -40,6 +41,15 @@ asio::awaitable<void> Connection::read_loop() {
         } else if (msg.find("QUIT") != std::string::npos) {
             co_await write_message("BYE\n");
             break;
+        } else if (msg.find("BROADCAST") != std::string::npos) {
+            auto content = msg.substr(msg.find("BROADCAST") + 10);
+            ConnectionManager::instance().broadcast("BROADCAST: " + content);
+            co_await write_message("BROADCAST_OK\n");
+        } else if (msg.find("STATS") != std::string::npos) {
+            auto total = ConnectionManager::instance().total_count();
+            auto active = ConnectionManager::instance().active_count();
+            co_await write_message("STATS: total=" + std::to_string(total) +
+                                  " active=" + std::to_string(active) + "\n");
         } else {
             co_await write_message("ECHO: " + msg);
         }

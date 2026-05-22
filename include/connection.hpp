@@ -19,11 +19,13 @@ public:
     asio::awaitable<void> start();
 
     uint64_t id() const { return id_; }
+    tcp::socket& socket() { return socket_; }
+
+    asio::awaitable<void> write_message(const std::string& msg);
 
 private:
     asio::awaitable<void> read_loop();
     asio::awaitable<void> heartbeat_loop();
-    asio::awaitable<void> write_message(const std::string& msg);
 
     tcp::socket socket_;
     uint64_t id_;
