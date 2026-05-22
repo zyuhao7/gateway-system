@@ -20,6 +20,9 @@ add_executable(gateway_server
     src/connection.cpp
     src/connection_manager.cpp
     src/io_context_pool.cpp
+    src/consistent_hash.cpp
+    src/node_registry.cpp
+    src/message_router.cpp
 )
 
 target_link_libraries(gateway_server
