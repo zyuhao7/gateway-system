@@ -20,14 +20,14 @@ fi
 
 # Phase 1: 基础连接测试
 echo "[Phase 1] Testing PING/PONG..."
-(echo "PING"; sleep 1) | nc localhost $PORT | head -1
+(echo "PING"; sleep 0.5) | nc localhost $PORT | head -2 | tail -1
 
 # Phase 2: 连接管理测试
 echo "[Phase 2] Testing ConnectionManager features..."
 
 # 测试 STATS 命令
 echo -n "Initial stats: "
-echo "STATS" | nc localhost $PORT | head -1
+(echo "STATS"; sleep 0.5) | nc localhost $PORT | head -2 | tail -1
 
 # 并发连接测试
 echo "[Phase 3] Spawning $CONNECTIONS concurrent connections..."
@@ -40,7 +40,7 @@ sleep 2
 
 # 查询连接统计
 echo -n "Active connections (via STATS): "
-echo "STATS" | nc localhost $PORT | head -1
+(echo "STATS"; sleep 0.5) | nc localhost $PORT | head -2 | tail -1
 
 # 测试广播功能
 echo "[Phase 4] Testing BROADCAST..."
@@ -59,7 +59,7 @@ done
 echo
 echo "=== Final Statistics ==="
 echo -n "ConnectionManager stats: "
-echo "STATS" | nc localhost $PORT | head -1
+(echo "STATS"; sleep 0.5) | nc localhost $PORT | head -2 | tail -1
 ACTIVE=$(netstat -an 2>/dev/null | grep ":$PORT" | grep ESTABLISHED | wc -l)
 echo "TCP ESTABLISHED count: $ACTIVE"
 
