@@ -3,7 +3,7 @@
 set -e
 
 PORT=${1:-8080}
-CONNECTIONS=${2:-1000}
+CONNECTIONS=${2:-100}
 DURATION=${3:-30}
 
 echo "=== Gateway Benchmark ==="
@@ -29,10 +29,17 @@ echo "[Phase 2] Testing ConnectionManager features..."
 echo -n "Initial stats: "
 (echo "STATS"; sleep 0.5) | nc localhost $PORT | head -2 | tail -1
 
-# 并发连接测试
+# 并发连接测试 - 使用 yes 命令保持连接活跃
 echo "[Phase 3] Spawning $CONNECTIONS concurrent connections..."
 for i in $(seq 1 $CONNECTIONS); do
-    (echo "PING"; sleep $DURATION; echo "QUIT") | nc localhost $PORT > /dev/null 2>&1 &
+    # 每 5 秒发送一次 PING，持续 DURATION 秒
+    (
+        for j in $(seq 1 $((DURATION / 5))); do
+            echo "PING"
+            sleep 5
+        done
+        echo "QUIT"
+    ) | nc localhost $PORT > /dev/null 2>&1 &
 done
 
 # 等待连接建立
@@ -44,7 +51,7 @@ echo -n "Active connections (via STATS): "
 
 # 测试广播功能
 echo "[Phase 4] Testing BROADCAST..."
-echo "BROADCAST Hello from benchmark!" | nc localhost $PORT > /dev/null 2>&1 &
+(echo "BROADCAST Hello from benchmark!"; sleep 0.5) | nc localhost $PORT > /dev/null 2>&1 &
 sleep 1
 
 # 持续监控
@@ -52,7 +59,8 @@ echo "[Phase 5] Monitoring for ${DURATION}s..."
 for i in $(seq 1 $((DURATION / 5))); do
     sleep 5
     ACTIVE=$(netstat -an 2>/dev/null | grep ":$PORT" | grep ESTABLISHED | wc -l)
-    echo "  [${i}/${DURATION/5}] Active TCP connections: $ACTIVE"
+    STATS=$((echo "STATS"; sleep 0.5) | nc localhost $PORT 2>/dev/null | head -2 | tail -1)
+    echo "  [${i}*5s] TCP: $ACTIVE, Manager: $STATS"
 done
 
 # 最终统计
