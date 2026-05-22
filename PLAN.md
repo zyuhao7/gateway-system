@@ -17,12 +17,12 @@
 ### ✅ Phase 0: 环境配置
 **状态：已完成**
 
-- [x] Ubuntu 24.04 + GCC 13 + Clang 18
-- [x] Boost.Asio 1.83
-- [x] CMake + Ninja 构建系统
-- [x] 压测工具（wrk, iperf3）
-- [x] 观测工具（perf, flamegraph）
-- [x] Docker + Prometheus + Grafana
+- [√] Ubuntu 24.04 + GCC 13 + Clang 18
+- [√] Boost.Asio 1.83
+- [√] CMake + Ninja 构建系统
+- [√] 压测工具（wrk, iperf3）
+- [√] 观测工具（perf, flamegraph）
+- [√] Docker + Prometheus + Grafana
 
 ---
 
@@ -32,13 +32,13 @@
 **目标：** 实现基础 TCP 服务器，验证 C++20 协程异步模型
 
 **已完成：**
-- [x] TCP acceptor 使用 `co_await` 接受连接
-- [x] Connection 类管理单个连接生命周期
-- [x] 异步读写循环（read_loop / write_message）
-- [x] PING/PONG 协议 + 消息回显
-- [x] 心跳定时器（30s 间隔，90s 超时）
-- [x] 优雅关闭（SIGINT/SIGTERM）
-- [x] 基础压测脚本
+- [√] TCP acceptor 使用 `co_await` 接受连接
+- [√] Connection 类管理单个连接生命周期
+- [√] 异步读写循环（read_loop / write_message）
+- [√] PING/PONG 协议 + 消息回显
+- [√] 心跳定时器（30s 间隔，90s 超时）
+- [√] 优雅关闭（SIGINT/SIGTERM）
+- [√] 基础压测脚本
 
 **产出：**
 - `src/main.cpp`, `src/server.cpp`, `src/connection.cpp`
@@ -53,12 +53,12 @@
 **目标：** 完善连接管理，支持大规模连接场景
 
 **已完成：**
-- [x] 全局连接池（ConnectionManager）
+- [√] 全局连接池（ConnectionManager）
   - 连接注册/注销
   - 按 ID 查找连接
   - 连接数统计（总数/活跃数）
   - 广播消息到所有连接
-- [x] 服务器集成
+- [√] 服务器集成
   - BROADCAST 命令支持
   - STATS 命令查看连接统计
   - 连接生命周期自动管理
@@ -82,14 +82,14 @@
 **目标：** 提升多核利用率，降低锁竞争
 
 **任务清单：**
-- [x] 多线程 IO 线程池
+- [√] 多线程 IO 线程池
   - 每线程独立 `io_context`
   - 连接按 hash 分配到线程
   - IoContextPool 类管理线程池
-- [x] Server 支持单线程/多线程模式
+- [√] Server 支持单线程/多线程模式
   - 命令行参数控制线程数
   - 单线程模式向后兼容
-- [x] 性能对比测试脚本
+- [√] 性能对比测试脚本
   - benchmark_threads.sh 测试不同线程数
   - 监控连接数和性能指标
 
@@ -203,8 +203,8 @@
 - CI/CD 配置（GitHub Actions）
 
 ### 文档
-- [x] README.md（项目介绍）
-- [x] PLAN.md（开发计划）
+- [√] README.md（项目介绍）
+- [√] PLAN.md（开发计划）
 - [ ] ARCHITECTURE.md（架构设计）
 - [ ] PERFORMANCE.md（性能测试报告）
 - [ ] DEPLOYMENT.md（部署指南）
