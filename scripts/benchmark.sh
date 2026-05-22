@@ -29,17 +29,23 @@ echo "[Phase 2] Testing ConnectionManager features..."
 echo -n "Initial stats: "
 (echo "STATS"; sleep 0.5) | nc localhost $PORT | head -2 | tail -1
 
-# 并发连接测试 - 使用 yes 命令保持连接活跃
+# 并发连接测试 - 使用后台脚本保持连接
 echo "[Phase 3] Spawning $CONNECTIONS concurrent connections..."
+PIDS=()
+ITERATIONS=$((DURATION / 5))
 for i in $(seq 1 $CONNECTIONS); do
-    # 每 5 秒发送一次 PING，持续 DURATION 秒
-    (
-        for j in $(seq 1 $((DURATION / 5))); do
-            echo "PING"
+    # 使用 bash -c 在子 shell 中循环发送
+    bash -c "
+        exec 3<>/dev/tcp/localhost/$1
+        cat <&3 > /dev/null &
+        for j in \$(seq 1 $2); do
+            echo 'PING' >&3
             sleep 5
         done
-        echo "QUIT"
-    ) | nc localhost $PORT > /dev/null 2>&1 &
+        echo 'QUIT' >&3
+        exec 3>&-
+    " -- "$PORT" "$ITERATIONS" 2>/dev/null &
+    PIDS+=($!)
 done
 
 # 等待连接建立
@@ -74,7 +80,9 @@ echo "TCP ESTABLISHED count: $ACTIVE"
 # 清理
 echo
 echo "Cleaning up..."
-pkill -P $$ nc 2>/dev/null || true
+for pid in "${PIDS[@]}"; do
+    kill $pid 2>/dev/null || true
+done
 wait 2>/dev/null || true
 
 echo "Benchmark complete"
