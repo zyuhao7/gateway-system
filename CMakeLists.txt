@@ -19,6 +19,7 @@ add_executable(gateway_server
     src/server.cpp
     src/connection.cpp
     src/connection_manager.cpp
+    src/io_context_pool.cpp
 )
 
 target_link_libraries(gateway_server
