@@ -1,3 +1,8 @@
+/**
+ * @file node_registry.cpp
+ * @brief 节点注册中心实现
+ */
+
 #include "node_registry.hpp"
 #include <iostream>
 #include <thread>
@@ -20,6 +25,7 @@ bool NodeRegistry::register_node(const std::string& node_id,
 
     local_node_id_ = node_id;
 
+    // 创建节点信息
     NodeInfo info;
     info.node_id = node_id;
     info.host = host;
@@ -28,12 +34,12 @@ bool NodeRegistry::register_node(const std::string& node_id,
     info.is_alive = true;
 
     nodes_[node_id] = info;
-    hash_ring_->add_node(node_id);
+    hash_ring_->add_node(node_id);  // 添加到一致性哈希环
 
     std::cout << "Node registered: " << node_id
               << " (" << host << ":" << port << ")" << std::endl;
 
-    // TODO: Register to Redis
+    // TODO: 将节点信息持久化到 Redis
     // redis_client.hset("gateway:nodes", node_id, host:port)
     // redis_client.expire("gateway:heartbeat:" + node_id, NODE_TIMEOUT_SEC)
 
@@ -48,15 +54,16 @@ bool NodeRegistry::unregister_node(const std::string& node_id) {
         return false;
     }
 
-    hash_ring_->remove_node(node_id);
+    hash_ring_->remove_node(node_id);  // 从哈希环移除
     nodes_.erase(it);
 
     std::cout << "Node unregistered: " << node_id << std::endl;
 
-    // TODO: Unregister from Redis
+    // TODO: 从 Redis 删除节点信息
     // redis_client.hdel("gateway:nodes", node_id)
     // redis_client.del("gateway:heartbeat:" + node_id)
 
+    // 通知上层节点已离开
     if (node_change_callback_) {
         node_change_callback_(node_id, false);
     }
@@ -72,10 +79,11 @@ bool NodeRegistry::heartbeat(const std::string& node_id) {
         return false;
     }
 
+    // 更新最后心跳时间
     it->second.last_heartbeat = std::chrono::system_clock::now();
     it->second.is_alive = true;
 
-    // TODO: Update Redis heartbeat
+    // TODO: 更新 Redis 中的心跳时间戳
     // redis_client.expire("gateway:heartbeat:" + node_id, NODE_TIMEOUT_SEC)
 
     return true;
@@ -115,10 +123,13 @@ void NodeRegistry::set_node_change_callback(NodeChangeCallback callback) {
 
 void NodeRegistry::start() {
     if (running_.exchange(true)) {
-        return;
+        return;  // 已经在运行
     }
 
+    // 启动心跳线程
     heartbeat_thread_ = std::thread([this]() { heartbeat_loop(); });
+
+    // 启动节点发现线程
     discovery_thread_ = std::thread([this]() { discovery_loop(); });
 
     std::cout << "NodeRegistry started" << std::endl;
@@ -126,9 +137,10 @@ void NodeRegistry::start() {
 
 void NodeRegistry::stop() {
     if (!running_.exchange(false)) {
-        return;
+        return;  // 已经停止
     }
 
+    // 等待线程结束
     if (heartbeat_thread_.joinable()) {
         heartbeat_thread_.join();
     }
@@ -137,6 +149,7 @@ void NodeRegistry::stop() {
         discovery_thread_.join();
     }
 
+    // 注销本节点
     if (!local_node_id_.empty()) {
         unregister_node(local_node_id_);
     }
@@ -144,6 +157,12 @@ void NodeRegistry::stop() {
     std::cout << "NodeRegistry stopped" << std::endl;
 }
 
+/**
+ * 心跳线程主循环
+ *
+ * 每 5 秒为本节点发送一次心跳，表明节点仍然存活。
+ * 心跳信息会更新到本地内存和 Redis。
+ */
 void NodeRegistry::heartbeat_loop() {
     while (running_) {
         if (!local_node_id_.empty()) {
@@ -154,9 +173,16 @@ void NodeRegistry::heartbeat_loop() {
     }
 }
 
+/**
+ * 节点发现线程主循环
+ *
+ * 每 5 秒执行：
+ * 1. 从 Redis 发现新加入的节点
+ * 2. 检查所有节点的健康状态
+ */
 void NodeRegistry::discovery_loop() {
     while (running_) {
-        // TODO: Discover nodes from Redis
+        // TODO: 从 Redis 发现新节点
         // auto nodes = redis_client.hgetall("gateway:nodes")
         // for each node, check if it exists locally
         // if not, add it to hash_ring and trigger callback
@@ -167,25 +193,39 @@ void NodeRegistry::discovery_loop() {
     }
 }
 
+/**
+ * 检查所有节点的健康状态
+ *
+ * 遍历所有节点，检查距离上次心跳的时间：
+ * - 如果超过 15 秒，标记为失联
+ * - 从一致性哈希环中移除
+ * - 触发节点变化回调，通知上层应用
+ *
+ * 这样可以自动摘除故障节点，避免将请求路由到已经挂掉的节点。
+ */
 void NodeRegistry::check_node_health() {
     std::unique_lock lock(mutex_);
 
     auto now = std::chrono::system_clock::now();
 
     for (auto& [node_id, info] : nodes_) {
+        // 跳过本地节点（本地节点由自己的心跳线程维护）
         if (node_id == local_node_id_) {
             continue;
         }
 
+        // 计算距离上次心跳的时间
         auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
             now - info.last_heartbeat).count();
 
+        // 超过 15 秒没有心跳 = 节点失联
         if (elapsed > NODE_TIMEOUT_SEC && info.is_alive) {
             info.is_alive = false;
-            hash_ring_->remove_node(node_id);
+            hash_ring_->remove_node(node_id);  // 从哈希环移除
 
             std::cout << "Node timeout: " << node_id << std::endl;
 
+            // 通知上层节点已失联
             if (node_change_callback_) {
                 node_change_callback_(node_id, false);
             }
