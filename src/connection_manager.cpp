@@ -1,5 +1,6 @@
 #include "connection_manager.hpp"
 #include "connection.hpp"
+#include "metrics.hpp"
 #include <iostream>
 
 namespace gateway {
@@ -13,6 +14,10 @@ void ConnectionManager::add(uint64_t id, std::shared_ptr<Connection> conn) {
     std::unique_lock lock(mutex_);
     connections_[id] = conn;
     active_count_.fetch_add(1, std::memory_order_relaxed);
+
+    // 记录指标
+    Metrics::instance().connection_opened();
+
     std::cout << "ConnectionManager: added connection " << id
               << ", total=" << connections_.size() << std::endl;
 }
@@ -21,6 +26,10 @@ void ConnectionManager::remove(uint64_t id) {
     std::unique_lock lock(mutex_);
     if (connections_.erase(id)) {
         active_count_.fetch_sub(1, std::memory_order_relaxed);
+
+        // 记录指标
+        Metrics::instance().connection_closed();
+
         std::cout << "ConnectionManager: removed connection " << id
                   << ", total=" << connections_.size() << std::endl;
     }

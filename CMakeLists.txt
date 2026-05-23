@@ -23,6 +23,8 @@ add_executable(gateway_server
     src/consistent_hash.cpp
     src/node_registry.cpp
     src/message_router.cpp
+    src/metrics.cpp
+    src/metrics_server.cpp
 )
 
 target_link_libraries(gateway_server

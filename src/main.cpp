@@ -1,5 +1,6 @@
 #include "server.hpp"
 #include "io_context_pool.hpp"
+#include "metrics_server.hpp"
 #include <iostream>
 #include <csignal>
 #include <thread>
@@ -7,6 +8,7 @@
 int main(int argc, char* argv[]) {
     try {
         uint16_t port = 8080;
+        uint16_t metrics_port = 9090;
         size_t thread_count = 1;
 
         if (argc > 1) {
@@ -14,6 +16,9 @@ int main(int argc, char* argv[]) {
         }
         if (argc > 2) {
             thread_count = std::stoul(argv[2]);
+        }
+        if (argc > 3) {
+            metrics_port = static_cast<uint16_t>(std::stoi(argv[3]));
         }
 
         if (thread_count == 1) {
@@ -27,9 +32,14 @@ int main(int argc, char* argv[]) {
             });
 
             gateway::Server server(io_context, port);
+            MetricsServer metrics_server(io_context, metrics_port);
 
             boost::asio::co_spawn(io_context,
                                  server.listen(),
+                                 boost::asio::detached);
+
+            boost::asio::co_spawn(io_context,
+                                 metrics_server.listen(),
                                  boost::asio::detached);
 
             io_context.run();
@@ -46,9 +56,14 @@ int main(int argc, char* argv[]) {
             });
 
             gateway::Server server(acceptor_io_context, pool, port);
+            MetricsServer metrics_server(acceptor_io_context, metrics_port);
 
             boost::asio::co_spawn(acceptor_io_context,
                                  server.listen(),
+                                 boost::asio::detached);
+
+            boost::asio::co_spawn(acceptor_io_context,
+                                 metrics_server.listen(),
                                  boost::asio::detached);
 
             pool->run();

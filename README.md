@@ -27,11 +27,23 @@ ninja -C build
 # 多线程模式
 ./build/gateway_server 8080 4   # 4 个工作线程
 ./build/gateway_server 8080 8   # 8 个工作线程
+
+# 指定 Prometheus 指标端口
+./build/gateway_server 8080 4 9091  # 指标端口 9091
 ```
 
 **参数说明：**
 - 第一个参数：监听端口（默认 8080）
 - 第二个参数：工作线程数（默认 1，单线程模式）
+- 第三个参数：Prometheus 指标端口（默认 9090）
+
+**Prometheus 指标：**
+访问 `http://localhost:9090/metrics` 查看实时指标：
+- `gateway_connections_total` - 总连接数
+- `gateway_connections_active` - 活跃连接数
+- `gateway_messages_received_total` - 接收消息数
+- `gateway_messages_sent_total` - 发送消息数
+- `gateway_latency_microseconds` - 延迟分布（P50/P99/P999）
 
 ## 测试
 
@@ -84,10 +96,11 @@ echo -e "PING\nQUIT" | nc localhost 8080
 - 消息路由器（本地/跨节点）
 - 用户到节点映射
 
-### Phase 5: 可观测性 🚧
-- Prometheus 指标导出
-- Grafana 监控面板
-- 性能压测与分析
+### Phase 5: 可观测性 ✅
+- Prometheus 指标采集
+- HTTP /metrics 端点
+- 连接数、消息数、延迟统计
+- 实时性能监控
 
 ### Phase 6: 容器化部署 🚧
 - Docker 镜像
