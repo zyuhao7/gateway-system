@@ -4,18 +4,22 @@
  */
 
 #include "node_registry.hpp"
+#include <hiredis/hiredis.h>
 #include <iostream>
 #include <thread>
 #include <mutex>
+#include <sstream>
 
 NodeRegistry::NodeRegistry(const std::string& redis_host, uint16_t redis_port)
     : redis_host_(redis_host)
     , redis_port_(redis_port)
     , hash_ring_(std::make_unique<ConsistentHash>(150)) {
+    connect_redis();
 }
 
 NodeRegistry::~NodeRegistry() {
     stop();
+    disconnect_redis();
 }
 
 bool NodeRegistry::register_node(const std::string& node_id,
@@ -39,9 +43,9 @@ bool NodeRegistry::register_node(const std::string& node_id,
     std::cout << "Node registered: " << node_id
               << " (" << host << ":" << port << ")" << std::endl;
 
-    // TODO: 将节点信息持久化到 Redis
-    // redis_client.hset("gateway:nodes", node_id, host:port)
-    // redis_client.expire("gateway:heartbeat:" + node_id, NODE_TIMEOUT_SEC)
+    // 将节点信息持久化到 Redis
+    lock.unlock();  // 释放锁后再调用 Redis
+    save_node_to_redis(node_id, info);
 
     return true;
 }
@@ -59,9 +63,9 @@ bool NodeRegistry::unregister_node(const std::string& node_id) {
 
     std::cout << "Node unregistered: " << node_id << std::endl;
 
-    // TODO: 从 Redis 删除节点信息
-    // redis_client.hdel("gateway:nodes", node_id)
-    // redis_client.del("gateway:heartbeat:" + node_id)
+    // 从 Redis 删除节点信息
+    lock.unlock();  // 释放锁后再调用 Redis
+    delete_node_from_redis(node_id);
 
     // 通知上层节点已离开
     if (node_change_callback_) {
@@ -83,8 +87,9 @@ bool NodeRegistry::heartbeat(const std::string& node_id) {
     it->second.last_heartbeat = std::chrono::system_clock::now();
     it->second.is_alive = true;
 
-    // TODO: 更新 Redis 中的心跳时间戳
-    // redis_client.expire("gateway:heartbeat:" + node_id, NODE_TIMEOUT_SEC)
+    // 更新 Redis 中的心跳时间戳
+    lock.unlock();  // 释放锁后再调用 Redis
+    update_heartbeat_in_redis(node_id);
 
     return true;
 }
@@ -182,10 +187,8 @@ void NodeRegistry::heartbeat_loop() {
  */
 void NodeRegistry::discovery_loop() {
     while (running_) {
-        // TODO: 从 Redis 发现新节点
-        // auto nodes = redis_client.hgetall("gateway:nodes")
-        // for each node, check if it exists locally
-        // if not, add it to hash_ring and trigger callback
+        // 从 Redis 发现新节点
+        load_nodes_from_redis();
 
         check_node_health();
 

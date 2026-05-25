@@ -1,0 +1,24 @@
+# HELP gateway_connections_total Total number of connections
+# TYPE gateway_connections_total counter
+gateway_connections_total 602
+
+# HELP gateway_connections_active Active connections
+# TYPE gateway_connections_active gauge
+gateway_connections_active 0
+
+# HELP gateway_connections_closed Closed connections
+# TYPE gateway_connections_closed counter
+gateway_connections_closed 602
+
+# HELP gateway_messages_received_total Total messages received
+# TYPE gateway_messages_received_total counter
+gateway_messages_received_total 0
+
+# HELP gateway_messages_sent_total Total messages sent
+# TYPE gateway_messages_sent_total counter
+gateway_messages_sent_total 0
+
+# HELP gateway_errors_total Total errors
+# TYPE gateway_errors_total counter
+gateway_errors_total 0
+

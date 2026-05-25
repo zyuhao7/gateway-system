@@ -21,6 +21,9 @@
 #include <map>
 #include <shared_mutex>
 
+// Forward declaration
+struct redisContext;
+
 /**
  * @class NodeRegistry
  * @brief 节点注册中心
@@ -149,6 +152,45 @@ public:
 
 private:
     /**
+     * @brief 连接到 Redis
+     * @return 成功返回 true
+     */
+    bool connect_redis();
+
+    /**
+     * @brief 断开 Redis 连接
+     */
+    void disconnect_redis();
+
+    /**
+     * @brief 从 Redis 加载所有节点
+     * @return 成功返回 true
+     */
+    bool load_nodes_from_redis();
+
+    /**
+     * @brief 将节点信息保存到 Redis
+     * @param node_id 节点 ID
+     * @param info 节点信息
+     * @return 成功返回 true
+     */
+    bool save_node_to_redis(const std::string& node_id, const NodeInfo& info);
+
+    /**
+     * @brief 从 Redis 删除节点
+     * @param node_id 节点 ID
+     * @return 成功返回 true
+     */
+    bool delete_node_from_redis(const std::string& node_id);
+
+    /**
+     * @brief 更新节点心跳到 Redis
+     * @param node_id 节点 ID
+     * @return 成功返回 true
+     */
+    bool update_heartbeat_in_redis(const std::string& node_id);
+
+    /**
      * @brief 心跳循环（后台线程）
      *
      * 每 5 秒为本节点发送一次心跳
@@ -175,7 +217,8 @@ private:
     void check_node_health();
 
     std::string redis_host_;                        ///< Redis 主机地址
-    uint16_t redis_port_;                           ///< Redis 端口（未使用警告已知）
+    uint16_t redis_port_;                           ///< Redis 端口
+    redisContext* redis_context_{nullptr};          ///< Redis 连接上下文
     std::string local_node_id_;                     ///< 本地节点 ID
 
     mutable std::shared_mutex mutex_;               ///< 保护节点信息的读写锁

@@ -11,6 +11,12 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0 -fsanitize=address")
 find_package(Boost 1.83 REQUIRED COMPONENTS system)
 find_package(Threads REQUIRED)
 
+# Find hiredis
+find_library(HIREDIS_LIB hiredis)
+if(NOT HIREDIS_LIB)
+    message(FATAL_ERROR "hiredis library not found")
+endif()
+
 include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${Boost_INCLUDE_DIRS})
 
@@ -22,6 +28,7 @@ add_executable(gateway_server
     src/io_context_pool.cpp
     src/consistent_hash.cpp
     src/node_registry.cpp
+    src/node_registry_redis.cpp
     src/message_router.cpp
     src/metrics.cpp
     src/metrics_server.cpp
@@ -30,4 +37,18 @@ add_executable(gateway_server
 target_link_libraries(gateway_server
     ${Boost_LIBRARIES}
     Threads::Threads
+    ${HIREDIS_LIB}
+)
+
+# Test executable for Redis integration
+add_executable(test_redis_integration
+    test_redis_integration.cpp
+    src/node_registry.cpp
+    src/node_registry_redis.cpp
+    src/consistent_hash.cpp
+)
+
+target_link_libraries(test_redis_integration
+    Threads::Threads
+    ${HIREDIS_LIB}
 )
