@@ -4,9 +4,13 @@
 #include <iostream>
 
 MessageRouter::MessageRouter(asio::io_context& io_context,
-                            std::shared_ptr<NodeRegistry> registry)
+                            std::shared_ptr<NodeRegistry> registry,
+                            std::shared_ptr<GrpcGatewayClient> grpc_client,
+                            const std::string& local_node_id)
     : io_context_(io_context)
-    , registry_(std::move(registry)) {
+    , registry_(std::move(registry))
+    , grpc_client_(std::move(grpc_client))
+    , local_node_id_(local_node_id) {
 }
 
 asio::awaitable<bool> MessageRouter::route_message(const Message& msg) {
@@ -83,17 +87,22 @@ std::string MessageRouter::get_node_for_user(const std::string& user_id) const {
 
 asio::awaitable<bool> MessageRouter::send_to_remote_node(const std::string& node_id,
                                                          const Message& msg) {
-    // TODO: Implement inter-node communication
-    // Options:
-    // 1. gRPC
-    // 2. Custom TCP protocol
-    // 3. HTTP/REST
-    // 4. Message queue (Redis Pub/Sub, RabbitMQ)
+    if (!grpc_client_) {
+        std::cerr << "gRPC client not initialized" << std::endl;
+        co_return false;
+    }
 
-    // For now, just log
-    std::cout << "TODO: Send message to node " << node_id
+    std::cout << "Forwarding message to node " << node_id
               << " for user " << msg.to_user_id << std::endl;
 
-    // Placeholder: simulate success
-    co_return true;
+    // 使用 gRPC 转发消息
+    // 注意：gRPC 调用是阻塞的，在生产环境中应该使用异步 gRPC
+    bool success = grpc_client_->forward_message(
+        node_id,
+        msg.to_user_id,
+        msg.content,
+        local_node_id_
+    );
+
+    co_return success;
 }

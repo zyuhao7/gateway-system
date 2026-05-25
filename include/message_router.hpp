@@ -9,6 +9,7 @@
 #pragma once
 
 #include "node_registry.hpp"
+#include "grpc_gateway_client.hpp"
 #include <boost/asio.hpp>
 #include <string>
 #include <memory>
@@ -58,9 +59,13 @@ public:
      * @brief 构造函数
      * @param io_context Asio IO 上下文
      * @param registry 节点注册中心
+     * @param grpc_client gRPC 客户端
+     * @param local_node_id 本地节点ID
      */
     explicit MessageRouter(asio::io_context& io_context,
-                          std::shared_ptr<NodeRegistry> registry);
+                          std::shared_ptr<NodeRegistry> registry,
+                          std::shared_ptr<GrpcGatewayClient> grpc_client,
+                          const std::string& local_node_id);
 
     /**
      * @brief 路由消息到目标用户
@@ -123,18 +128,15 @@ private:
      * @param msg 消息
      * @return 成功返回 true
      *
-     * TODO: 实现跨节点通信协议
-     * 可选方案：
-     * - gRPC
-     * - 自定义 TCP 协议
-     * - HTTP/REST
-     * - 消息队列（Redis Pub/Sub, RabbitMQ）
+     * 使用 gRPC 转发消息到远程节点
      */
     asio::awaitable<bool> send_to_remote_node(const std::string& node_id,
                                               const Message& msg);
 
     asio::io_context& io_context_;                  ///< Asio IO 上下文
     std::shared_ptr<NodeRegistry> registry_;        ///< 节点注册中心
+    std::shared_ptr<GrpcGatewayClient> grpc_client_; ///< gRPC 客户端
+    std::string local_node_id_;                     ///< 本地节点ID
     MessageHandler message_handler_;                ///< 消息处理回调
 
     mutable std::shared_mutex mutex_;               ///< 保护本地用户列表

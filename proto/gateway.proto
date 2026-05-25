@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+package gateway;
+
+// 跨节点消息转发服务
+service GatewayService {
+  // 转发消息到目标节点的用户
+  rpc ForwardMessage(ForwardMessageRequest) returns (ForwardMessageResponse);
+
+  // 批量转发消息
+  rpc ForwardMessageBatch(ForwardMessageBatchRequest) returns (ForwardMessageBatchResponse);
+
+  // 节点健康检查
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+
+  // 获取节点统计信息
+  rpc GetNodeStats(NodeStatsRequest) returns (NodeStatsResponse);
+}
+
+// 转发消息请求
+message ForwardMessageRequest {
+  string user_id = 1;        // 目标用户ID
+  string message = 2;        // 消息内容
+  string from_node = 3;      // 来源节点ID
+  int64 timestamp = 4;       // 时间戳（毫秒）
+}
+
+// 转发消息响应
+message ForwardMessageResponse {
+  bool success = 1;          // 是否成功
+  string error_message = 2;  // 错误信息（如果失败）
+  bool user_online = 3;      // 用户是否在线
+}
+
+// 批量转发请求
+message ForwardMessageBatchRequest {
+  repeated ForwardMessageRequest messages = 1;
+}
+
+// 批量转发响应
+message ForwardMessageBatchResponse {
+  int32 success_count = 1;   // 成功数量
+  int32 failed_count = 2;    // 失败数量
+  repeated string errors = 3; // 错误列表
+}
+
+// 健康检查请求
+message HealthCheckRequest {
+  string node_id = 1;
+}
+
+// 健康检查响应
+message HealthCheckResponse {
+  bool healthy = 1;
+  int32 active_connections = 2;
+  int32 total_connections = 3;
+  double cpu_usage = 4;
+  double memory_usage = 5;
+}
+
+// 节点统计请求
+message NodeStatsRequest {
+  string node_id = 1;
+}
+
+// 节点统计响应
+message NodeStatsResponse {
+  string node_id = 1;
+  int32 active_connections = 2;
+  int32 total_connections = 3;
+  int64 messages_received = 4;
+  int64 messages_sent = 5;
+  int64 uptime_seconds = 6;
+}
