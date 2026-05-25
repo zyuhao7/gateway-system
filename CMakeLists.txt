@@ -72,7 +72,7 @@ target_link_libraries(gateway_server
 
 # Test executable for Redis integration
 add_executable(test_redis_integration
-    test_redis_integration.cpp
+    tests/test_redis_integration.cpp
     src/node_registry.cpp
     src/node_registry_redis.cpp
     src/consistent_hash.cpp
@@ -85,7 +85,7 @@ target_link_libraries(test_redis_integration
 
 # Test executable for gRPC communication
 add_executable(test_grpc_communication
-    test_grpc_communication.cpp
+    tests/test_grpc_communication.cpp
     src/grpc_gateway_service.cpp
     src/grpc_gateway_client.cpp
     src/connection_manager.cpp
