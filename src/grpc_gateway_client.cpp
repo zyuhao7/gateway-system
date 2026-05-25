@@ -5,6 +5,7 @@
 
 #include "grpc_gateway_client.hpp"
 #include <iostream>
+#include <sstream>
 #include <chrono>
 
 using grpc::Channel;
