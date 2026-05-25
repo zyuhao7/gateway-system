@@ -72,6 +72,8 @@ kubectl get pods -n gateway-system
 
 详见 [DEPLOYMENT.md](DEPLOYMENT.md)
 
+## 测试
+
 ```bash
 # 简单连接测试
 echo -e "PING\nQUIT" | nc localhost 8080
@@ -82,6 +84,25 @@ echo -e "PING\nQUIT" | nc localhost 8080
 # 多线程性能对比测试
 ./scripts/benchmark_threads.sh 8080 100 30
 ```
+
+## 性能测试
+
+```bash
+# 启动服务器（4 线程）
+./build/gateway_server 8080 4 9090
+
+# 运行性能测试（100-10K 连接）
+./scripts/performance_test.sh 8080 9090
+
+# 生成 CPU 火焰图
+./scripts/generate_flamegraph.sh [PID] [DURATION]
+```
+
+**性能测试报告：** [PERFORMANCE.md](PERFORMANCE.md)
+
+**前置要求：**
+- 火焰图工具：`git clone https://github.com/brendangregg/FlameGraph.git ~/FlameGraph`
+- perf 工具：`sudo apt install linux-tools-generic`
 
 ## 协议
 
@@ -133,6 +154,12 @@ echo -e "PING\nQUIT" | nc localhost 8080
 - Kubernetes 部署配置
 - HPA 自动扩缩容
 - 健康检查和滚动更新
+
+### Phase 8: 性能测试与报告 ✅
+- 自动化性能测试脚本
+- CPU 火焰图生成
+- 完整性能报告模板
+- 多级负载测试（100-10K 连接）
 
 ## 性能目标
 

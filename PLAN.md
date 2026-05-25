@@ -144,61 +144,101 @@
 
 ---
 
-### Phase 5: 可观测性与压测
-**状态：待开始**
+### ✅ Phase 5: 可观测性与压测
+**状态：已完成**
 
 **目标：** 完整的监控体系和性能验证
 
-**任务清单：**
-- [ ] Prometheus 指标暴露
-  - 连接数（总数/活跃/空闲）
-  - 消息吞吐（QPS）
-  - P50/P99/P999 延迟
-  - 队列积压深度
-- [ ] Grafana 面板
-  - 实时连接数曲线
-  - 延迟分布热力图
-  - 节点负载对比
-- [ ] 自研压测器
-  - 支持 TCP/WebSocket
-  - 可配置消息频率
-  - 模拟慢客户端
-- [ ] 性能分析
-  - perf + flamegraph 生成火焰图
-  - 热点函数优化
-  - 内存泄漏检测（Valgrind/ASan）
+**已完成：**
+- [√] Prometheus 指标暴露
+  - gateway_connections_total/active - 连接数统计
+  - gateway_messages_received/sent_total - 消息吞吐
+  - gateway_latency_microseconds - P50/P99/P999 延迟
+  - 原子计数器实现线程安全
+- [√] HTTP /metrics 端点
+  - MetricsServer 类（简单 HTTP 服务器）
+  - Prometheus 文本格式导出
+  - 独立端口（默认 9090）
+- [√] 压测脚本
+  - benchmark.sh - 基础连接测试
+  - benchmark_threads.sh - 多线程性能对比
+  - 修复连接持久化问题（/dev/tcp）
 
-**预期产出：**
-- Grafana dashboard JSON
-- 压测报告（Markdown + 图表）
-- 火焰图 SVG
+**待完善：**
+- [ ] Grafana dashboard JSON
+- [ ] 内存泄漏检测（Valgrind/ASan）
+
+**产出：**
+- `metrics.hpp/cpp` - 指标采集器
+- `metrics_server.hpp/cpp` - HTTP 指标服务器
+- `scripts/benchmark.sh` - 压测脚本
 
 ---
 
-### Phase 6: 容器化部署与扩缩容
-**状态：待开始**
+### ✅ Phase 6: 容器化部署与扩缩容
+**状态：已完成**
 
 **目标：** 生产级部署方案
 
-**任务清单：**
-- [ ] Dockerfile
-  - 多阶段构建
-  - 最小化镜像体积
-- [ ] Docker Compose
-  - 网关 + Redis + Prometheus + Grafana
-  - 一键启动完整环境
-- [ ] Kubernetes 部署
-  - Deployment + Service + ConfigMap
-  - HPA 自动扩缩容
-  - 滚动更新策略
-- [ ] 健康检查
-  - Liveness / Readiness probe
+**已完成：**
+- [√] Dockerfile
+  - 多阶段构建（builder + runtime）
+  - Ubuntu 24.04 + Clang 18
+  - 非 root 用户运行（gateway:1000）
+  - 健康检查（/metrics 端点）
+- [√] Docker Compose
+  - 3 节点网关集群（8081-8083）
+  - Redis + Prometheus + Grafana
+  - 一键部署脚本（scripts/deploy.sh）
+- [√] Kubernetes 部署
+  - Deployment + Service + HPA
+  - 资源限制（256Mi-512Mi, 250m-500m CPU）
+  - HPA 自动扩缩容（3-10 副本，CPU 70%）
+  - 滚动更新策略（maxSurge: 1, maxUnavailable: 0）
+- [√] 健康检查
+  - Liveness probe（30s 间隔）
+  - Readiness probe（10s 间隔）
   - 优雅关闭（SIGTERM 处理）
 
-**预期产出：**
-- `Dockerfile`, `docker-compose.yml`
-- `k8s/` 目录（deployment.yaml 等）
-- 部署文档
+**产出：**
+- `Dockerfile` - 多阶段构建配置
+- `docker-compose.yml` - 完整集群编排
+- `k8s/deployment.yaml` - K8s 部署配置
+- `k8s/redis.yaml` - Redis StatefulSet
+- `DEPLOYMENT.md` - 部署指南
+
+---
+
+### ✅ Phase 8: 性能测试与报告
+**状态：已完成**
+
+**目标：** 系统性能验证与优化建议
+
+**已完成：**
+- [√] 自动化性能测试脚本
+  - performance_test.sh - 多级负载测试（100-10K 连接）
+  - 60 秒测试时长，5 秒采样间隔
+  - CSV 时序数据 + Prometheus 指标快照
+  - 自动生成测试报告
+- [√] CPU 火焰图生成
+  - generate_flamegraph.sh - perf + FlameGraph 集成
+  - 30 秒性能采样
+  - SVG 火焰图 + 性能报告
+- [√] 性能报告模板
+  - PERFORMANCE.md - 完整测试报告框架
+  - 连接容量、多线程、消息吞吐测试场景
+  - CPU/内存分析、优化建议
+  - 分布式路由验证、容器化部署验证
+
+**待执行：**
+- [ ] 实际运行性能测试填充数据
+- [ ] 生成真实火焰图
+- [ ] 百万连接压测（需要系统调优）
+
+**产出：**
+- `scripts/performance_test.sh` - 性能测试脚本
+- `scripts/generate_flamegraph.sh` - 火焰图生成脚本
+- `PERFORMANCE.md` - 性能报告模板
 
 ---
 
@@ -212,9 +252,9 @@
 ### 文档
 - [√] README.md（项目介绍）
 - [√] PLAN.md（开发计划）
+- [√] DEPLOYMENT.md（部署指南）
+- [√] PERFORMANCE.md（性能测试报告模板）
 - [ ] ARCHITECTURE.md（架构设计）
-- [ ] PERFORMANCE.md（性能测试报告）
-- [ ] DEPLOYMENT.md（部署指南）
 
 ### 演示材料
 - [ ] 架构图（draw.io / Excalidraw）
@@ -230,12 +270,13 @@
 | Phase 0 | 0.5 天 | ✅ 已完成 |
 | Phase 1 | 1 天 | ✅ 已完成 |
 | Phase 2 | 2 天 | ✅ 已完成 |
-| Phase 3 | 3 天 | - |
-| Phase 4 | 4 天 | - |
-| Phase 5 | 2 天 | - |
-| Phase 6 | 2 天 | - |
-| 文档整理 | 1 天 | - |
-| **总计** | **15.5 天** | - |
+| Phase 3 | 3 天 | ✅ 已完成 |
+| Phase 4 | 4 天 | ✅ 已完成 |
+| Phase 5 | 2 天 | ✅ 已完成 |
+| Phase 6 | 2 天 | ✅ 已完成 |
+| Phase 8 | 1 天 | ✅ 已完成 |
+| 文档整理 | 1 天 | 进行中 |
+| **总计** | **16.5 天** | - |
 
 ---
 
@@ -267,12 +308,12 @@
 
 ## 下一步行动
 
-**当前进度：** Phase 2 已完成，准备开始 Phase 3
+**当前进度：** Phase 0-6, 8 已完成，核心功能就绪
 
 **立即任务：**
-1. 实现多线程 IO 线程池（每线程独立 io_context）
-2. 连接按 hash 分配到线程
-3. 线程本地消息队列优化
-4. 对象池与内存池实现
+1. 运行性能测试填充 PERFORMANCE.md 数据
+2. 生成 CPU 火焰图分析热点
+3. 编写 ARCHITECTURE.md 架构文档
+4. 集成 Redis 实现节点发现（Phase 4 待完善）
 
-**本周目标：** 完成 Phase 3 多线程优化，进行多核性能压测
+**本周目标：** 完成性能测试报告，准备生产环境试运行
