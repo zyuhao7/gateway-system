@@ -45,7 +45,32 @@ ninja -C build
 - `gateway_messages_sent_total` - 发送消息数
 - `gateway_latency_microseconds` - 延迟分布（P50/P99/P999）
 
-## 测试
+## 部署
+
+### Docker Compose（推荐用于开发/测试）
+
+```bash
+# 一键部署 3 节点集群
+./scripts/deploy.sh
+
+# 访问服务
+# Gateway: localhost:8081, 8082, 8083
+# Prometheus: http://localhost:9090
+# Grafana: http://localhost:3000 (admin/admin)
+```
+
+### Kubernetes（生产环境）
+
+```bash
+# 部署到 K8s 集群
+kubectl apply -f k8s/redis.yaml
+kubectl apply -f k8s/deployment.yaml
+
+# 查看状态
+kubectl get pods -n gateway-system
+```
+
+详见 [DEPLOYMENT.md](DEPLOYMENT.md)
 
 ```bash
 # 简单连接测试
@@ -102,10 +127,12 @@ echo -e "PING\nQUIT" | nc localhost 8080
 - 连接数、消息数、延迟统计
 - 实时性能监控
 
-### Phase 6: 容器化部署 🚧
-- Docker 镜像
-- Kubernetes 部署
-- 自动扩缩容
+### Phase 6: 容器化部署 ✅
+- Dockerfile（多阶段构建）
+- Docker Compose（3 节点集群）
+- Kubernetes 部署配置
+- HPA 自动扩缩容
+- 健康检查和滚动更新
 
 ## 性能目标
 
