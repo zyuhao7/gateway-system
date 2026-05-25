@@ -1,5 +1,6 @@
 #include "connection.hpp"
 #include "connection_manager.hpp"
+#include "metrics.hpp"
 #include <iostream>
 #include <vector>
 
@@ -35,6 +36,8 @@ asio::awaitable<void> Connection::read_loop() {
 
         std::string msg(buffer.data(), n);
         std::cout << "Connection " << id_ << " received: " << msg;
+
+        Metrics::instance().message_received();
 
         if (msg.find("PING") != std::string::npos) {
             co_await write_message("PONG\n");
@@ -78,6 +81,8 @@ asio::awaitable<void> Connection::write_message(const std::string& msg) {
         asio::buffer(msg),
         asio::use_awaitable
     );
+
+    Metrics::instance().message_sent();
 }
 
 }
