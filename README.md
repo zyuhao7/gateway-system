@@ -168,6 +168,13 @@ echo -e "PING\nQUIT" | nc localhost 8080
 - 多节点一致性哈希路由
 - 毫秒级消息转发延迟
 
+## 文档
+
+- [PLAN.md](PLAN.md) - 开发计划与进度
+- [ARCHITECTURE.md](ARCHITECTURE.md) - 系统架构设计
+- [DEPLOYMENT.md](DEPLOYMENT.md) - 部署指南
+- [PERFORMANCE.md](PERFORMANCE.md) - 性能测试报告
+
 ## 开发进度
 
 详见 [PLAN.md](PLAN.md)
