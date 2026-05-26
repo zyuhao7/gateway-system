@@ -12,6 +12,7 @@ find_package(Boost 1.83 REQUIRED COMPONENTS system)
 find_package(Threads REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(gRPC REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 # Find hiredis
 find_library(HIREDIS_LIB hiredis)
@@ -68,6 +69,8 @@ target_link_libraries(gateway_server
     protobuf::libprotobuf
     gRPC::grpc++
     gRPC::grpc++_reflection
+    OpenSSL::SSL
+    OpenSSL::Crypto
 )
 
 # Test executable for Redis integration
@@ -101,4 +104,18 @@ target_link_libraries(test_grpc_communication
     protobuf::libprotobuf
     gRPC::grpc++
     gRPC::grpc++_reflection
+)
+
+# Test executable for SSL/TLS server
+add_executable(test_ssl_server
+    tests/test_ssl_server.cpp
+    src/ssl_server.cpp
+    src/io_context_pool.cpp
+)
+
+target_link_libraries(test_ssl_server
+    ${Boost_LIBRARIES}
+    Threads::Threads
+    OpenSSL::SSL
+    OpenSSL::Crypto
 )
