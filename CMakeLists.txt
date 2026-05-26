@@ -13,6 +13,7 @@ find_package(Threads REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(gRPC REQUIRED)
 find_package(OpenSSL REQUIRED)
+find_package(GTest REQUIRED)
 
 # Find hiredis
 find_library(HIREDIS_LIB hiredis)
@@ -119,3 +120,32 @@ target_link_libraries(test_ssl_server
     OpenSSL::SSL
     OpenSSL::Crypto
 )
+
+# Unit test for Metrics
+add_executable(test_metrics
+    tests/test_metrics.cpp
+    src/metrics.cpp
+)
+
+target_link_libraries(test_metrics
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+# Unit test for ConsistentHash
+add_executable(test_consistent_hash
+    tests/test_consistent_hash.cpp
+    src/consistent_hash.cpp
+)
+
+target_link_libraries(test_consistent_hash
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+# Enable testing
+enable_testing()
+add_test(NAME MetricsTest COMMAND test_metrics)
+add_test(NAME ConsistentHashTest COMMAND test_consistent_hash)
