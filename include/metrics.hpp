@@ -55,6 +55,9 @@ public:
     // 重置计数器（用于测试）
     void reset();
 
+    // 缓冲池指标
+    void record_buffer_pool_stats(size_t allocated, size_t in_use, size_t available);
+
 private:
     Metrics() = default;
 
@@ -72,4 +75,9 @@ private:
     mutable std::shared_mutex latency_mutex_;
     std::vector<uint64_t> latency_samples_;
     static constexpr size_t MAX_SAMPLES = 10000;
+
+    // 缓冲池统计
+    std::atomic<uint64_t> buffer_pool_allocated_{0};
+    std::atomic<uint64_t> buffer_pool_in_use_{0};
+    std::atomic<uint64_t> buffer_pool_available_{0};
 };

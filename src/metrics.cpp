@@ -131,6 +131,19 @@ std::string Metrics::export_prometheus() const {
         oss << "gateway_latency_microseconds{quantile=\"0.999\"} " << p999 << "\n\n";
     }
 
+    // 缓冲池指标
+    oss << "# HELP gateway_buffer_pool_allocated Total allocated buffers\n";
+    oss << "# TYPE gateway_buffer_pool_allocated gauge\n";
+    oss << "gateway_buffer_pool_allocated " << buffer_pool_allocated_.load() << "\n\n";
+
+    oss << "# HELP gateway_buffer_pool_in_use Buffers currently in use\n";
+    oss << "# TYPE gateway_buffer_pool_in_use gauge\n";
+    oss << "gateway_buffer_pool_in_use " << buffer_pool_in_use_.load() << "\n\n";
+
+    oss << "# HELP gateway_buffer_pool_available Available buffers in pool\n";
+    oss << "# TYPE gateway_buffer_pool_available gauge\n";
+    oss << "gateway_buffer_pool_available " << buffer_pool_available_.load() << "\n\n";
+
     return oss.str();
 }
 
@@ -144,4 +157,10 @@ void Metrics::reset() {
 
     std::unique_lock lock(latency_mutex_);
     latency_samples_.clear();
+}
+
+void Metrics::record_buffer_pool_stats(size_t allocated, size_t in_use, size_t available) {
+    buffer_pool_allocated_.store(allocated, std::memory_order_relaxed);
+    buffer_pool_in_use_.store(in_use, std::memory_order_relaxed);
+    buffer_pool_available_.store(available, std::memory_order_relaxed);
 }

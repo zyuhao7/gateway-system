@@ -145,7 +145,38 @@ target_link_libraries(test_consistent_hash
     Threads::Threads
 )
 
+# Unit test for BufferPool
+add_executable(test_buffer_pool
+    tests/test_buffer_pool.cpp
+)
+
+target_link_libraries(test_buffer_pool
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+# Benchmark for BufferPool
+add_executable(benchmark_buffer_pool
+    tests/benchmark_buffer_pool.cpp
+)
+
+target_link_libraries(benchmark_buffer_pool
+    Threads::Threads
+)
+
+# Stress test client
+add_executable(stress_test_client
+    tests/stress_test_client.cpp
+)
+
+target_link_libraries(stress_test_client
+    ${Boost_LIBRARIES}
+    Threads::Threads
+)
+
 # Enable testing
 enable_testing()
 add_test(NAME MetricsTest COMMAND test_metrics)
 add_test(NAME ConsistentHashTest COMMAND test_consistent_hash)
+add_test(NAME BufferPoolTest COMMAND test_buffer_pool)

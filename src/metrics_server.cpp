@@ -5,6 +5,7 @@
 
 #include "metrics_server.hpp"
 #include "metrics.hpp"
+#include "buffer_pool.hpp"
 #include <iostream>
 #include <sstream>
 
@@ -62,6 +63,14 @@ std::string MetricsServer::handle_request(const std::string& request) {
 
     // 简单的 HTTP 请求解析
     if (request.find("GET /metrics") != std::string::npos) {
+        // 更新缓冲池统计
+        auto& pool = BufferPool::instance();
+        Metrics::instance().record_buffer_pool_stats(
+            pool.allocated(),
+            pool.in_use(),
+            pool.available()
+        );
+
         // 获取 Prometheus 格式的指标
         std::string metrics = Metrics::instance().export_prometheus();
 

@@ -1,0 +1,300 @@
+{
+  "dashboard": {
+    "title": "Gateway System Dashboard",
+    "tags": ["gateway", "performance", "monitoring"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 1,
+    "refresh": "5s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Active Connections",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "gateway_connections_active",
+            "legendFormat": "Active Connections",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "short", "label": "Connections"},
+          {"format": "short"}
+        ],
+        "lines": true,
+        "fill": 1,
+        "linewidth": 2,
+        "pointradius": 5,
+        "legend": {"show": true, "alignAsTable": true, "avg": true, "current": true, "max": true}
+      },
+      {
+        "id": 2,
+        "title": "Connection Rate",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(gateway_connections_total[1m])",
+            "legendFormat": "Connections/sec",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(gateway_connections_closed[1m])",
+            "legendFormat": "Closed/sec",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          {"format": "short", "label": "Rate"},
+          {"format": "short"}
+        ],
+        "lines": true,
+        "fill": 1,
+        "linewidth": 2
+      },
+      {
+        "id": 3,
+        "title": "Message Throughput",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(gateway_messages_received_total[1m])",
+            "legendFormat": "Received/sec",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(gateway_messages_sent_total[1m])",
+            "legendFormat": "Sent/sec",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          {"format": "short", "label": "Messages/sec"},
+          {"format": "short"}
+        ],
+        "lines": true,
+        "fill": 1,
+        "linewidth": 2,
+        "legend": {"show": true, "alignAsTable": true, "avg": true, "current": true, "max": true}
+      },
+      {
+        "id": 4,
+        "title": "Message Latency (P50, P99, P999)",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "gateway_latency_microseconds{quantile=\"0.5\"}",
+            "legendFormat": "P50",
+            "refId": "A"
+          },
+          {
+            "expr": "gateway_latency_microseconds{quantile=\"0.99\"}",
+            "legendFormat": "P99",
+            "refId": "B"
+          },
+          {
+            "expr": "gateway_latency_microseconds{quantile=\"0.999\"}",
+            "legendFormat": "P999",
+            "refId": "C"
+          }
+        ],
+        "yaxes": [
+          {"format": "µs", "label": "Latency"},
+          {"format": "short"}
+        ],
+        "lines": true,
+        "fill": 0,
+        "linewidth": 2,
+        "legend": {"show": true, "alignAsTable": true, "avg": true, "current": true, "max": true},
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {"params": [10000], "type": "gt"},
+              "operator": {"type": "and"},
+              "query": {"params": ["B", "5m", "now"]},
+              "reducer": {"params": [], "type": "avg"},
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "frequency": "60s",
+          "handler": 1,
+          "name": "High P99 Latency",
+          "noDataState": "no_data",
+          "notifications": []
+        }
+      },
+      {
+        "id": 5,
+        "title": "Buffer Pool Usage",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 16, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "gateway_buffer_pool_allocated",
+            "legendFormat": "Allocated",
+            "refId": "A"
+          },
+          {
+            "expr": "gateway_buffer_pool_in_use",
+            "legendFormat": "In Use",
+            "refId": "B"
+          },
+          {
+            "expr": "gateway_buffer_pool_available",
+            "legendFormat": "Available",
+            "refId": "C"
+          }
+        ],
+        "yaxes": [
+          {"format": "short", "label": "Buffers"},
+          {"format": "short"}
+        ],
+        "lines": true,
+        "fill": 1,
+        "linewidth": 2,
+        "legend": {"show": true, "alignAsTable": true, "avg": true, "current": true, "max": true}
+      },
+      {
+        "id": 6,
+        "title": "Buffer Pool Efficiency",
+        "type": "gauge",
+        "gridPos": {"x": 12, "y": 16, "w": 6, "h": 8},
+        "targets": [
+          {
+            "expr": "gateway_buffer_pool_in_use / gateway_buffer_pool_allocated * 100",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "showThresholdLabels": false,
+          "showThresholdMarkers": true
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 50, "color": "yellow"},
+                {"value": 80, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Error Rate",
+        "type": "graph",
+        "gridPos": {"x": 18, "y": 16, "w": 6, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(gateway_errors_total[1m])",
+            "legendFormat": "Errors/sec",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "short", "label": "Errors/sec"},
+          {"format": "short"}
+        ],
+        "lines": true,
+        "fill": 1,
+        "linewidth": 2,
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {"params": [10], "type": "gt"},
+              "operator": {"type": "and"},
+              "query": {"params": ["A", "5m", "now"]},
+              "reducer": {"params": [], "type": "avg"},
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "frequency": "60s",
+          "handler": 1,
+          "name": "High Error Rate",
+          "noDataState": "no_data",
+          "notifications": []
+        }
+      },
+      {
+        "id": 8,
+        "title": "Connection Statistics",
+        "type": "stat",
+        "gridPos": {"x": 0, "y": 24, "w": 8, "h": 4},
+        "targets": [
+          {
+            "expr": "gateway_connections_total",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value",
+          "justifyMode": "auto",
+          "textMode": "auto"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "displayName": "Total Connections"
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "Messages Received",
+        "type": "stat",
+        "gridPos": {"x": 8, "y": 24, "w": 8, "h": 4},
+        "targets": [
+          {
+            "expr": "gateway_messages_received_total",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "displayName": "Total Messages Received"
+          }
+        }
+      },
+      {
+        "id": 10,
+        "title": "Messages Sent",
+        "type": "stat",
+        "gridPos": {"x": 16, "y": 24, "w": 8, "h": 4},
+        "targets": [
+          {
+            "expr": "gateway_messages_sent_total",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "displayName": "Total Messages Sent"
+          }
+        }
+      }
+    ]
+  }
+}

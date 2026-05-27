@@ -1,6 +1,7 @@
 #include "connection.hpp"
 #include "connection_manager.hpp"
 #include "metrics.hpp"
+#include "buffer_pool.hpp"
 #include <iostream>
 #include <vector>
 
@@ -24,17 +25,17 @@ asio::awaitable<void> Connection::start() {
 }
 
 asio::awaitable<void> Connection::read_loop() {
-    std::vector<char> buffer(4096);
+    auto buffer = BufferPool::instance().acquire();
 
     while (true) {
         size_t n = co_await socket_.async_read_some(
-            asio::buffer(buffer),
+            asio::buffer(buffer->ptr(), buffer->size()),
             asio::use_awaitable
         );
 
         last_activity_ = std::chrono::steady_clock::now();
 
-        std::string msg(buffer.data(), n);
+        std::string msg(buffer->ptr(), n);
         std::cout << "Connection " << id_ << " received: " << msg;
 
         Metrics::instance().message_received();
