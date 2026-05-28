@@ -8,12 +8,25 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O2")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0 -fsanitize=address")
 
-find_package(Boost 1.83 REQUIRED COMPONENTS system)
+find_package(Boost 1.83 REQUIRED COMPONENTS system json)
 find_package(Threads REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(gRPC REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(GTest REQUIRED)
+
+# Find RocksDB (optional for message storage)
+find_library(ROCKSDB_LIB rocksdb)
+if(ROCKSDB_LIB)
+    message(STATUS "Found RocksDB: ${ROCKSDB_LIB}")
+    set(HAVE_ROCKSDB TRUE)
+else()
+    message(WARNING "RocksDB not found - message storage will be disabled")
+    set(HAVE_ROCKSDB FALSE)
+endif()
+
+# nlohmann_json (header-only, use include path)
+include_directories(/usr/include/nlohmann)
 
 # Find hiredis
 find_library(HIREDIS_LIB hiredis)
@@ -64,6 +77,38 @@ add_executable(gateway_server
 )
 
 target_link_libraries(gateway_server
+    ${Boost_LIBRARIES}
+    Threads::Threads
+    ${HIREDIS_LIB}
+    protobuf::libprotobuf
+    gRPC::grpc++
+    gRPC::grpc++_reflection
+    OpenSSL::SSL
+    OpenSSL::Crypto
+)
+
+# Gateway server with WebSocket support
+add_executable(gateway_server_ws
+    src/main_ws.cpp
+    src/server.cpp
+    src/connection.cpp
+    src/connection_manager.cpp
+    src/io_context_pool.cpp
+    src/consistent_hash.cpp
+    src/node_registry.cpp
+    src/node_registry_redis.cpp
+    src/message_router.cpp
+    src/metrics.cpp
+    src/metrics_server.cpp
+    src/grpc_gateway_service.cpp
+    src/grpc_gateway_client.cpp
+    src/websocket_server.cpp
+    src/websocket_connection.cpp
+    ${PROTO_SRCS}
+    ${GRPC_SRCS}
+)
+
+target_link_libraries(gateway_server_ws
     ${Boost_LIBRARIES}
     Threads::Threads
     ${HIREDIS_LIB}
@@ -175,8 +220,44 @@ target_link_libraries(stress_test_client
     Threads::Threads
 )
 
+# WebSocket test client
+add_executable(test_websocket
+    tests/test_websocket.cpp
+)
+
+target_link_libraries(test_websocket
+    ${Boost_LIBRARIES}
+    Threads::Threads
+)
+
+# Message storage test (only if RocksDB is available)
+if(HAVE_ROCKSDB)
+    add_executable(test_message_storage
+        tests/test_message_storage.cpp
+        src/message_storage.cpp
+    )
+
+    target_link_libraries(test_message_storage
+        ${Boost_LIBRARIES}
+        Threads::Threads
+        ${ROCKSDB_LIB}
+    )
+endif()
+
+# Protocol test
+add_executable(test_protocol
+    tests/test_protocol.cpp
+    src/protocol.cpp
+)
+
+target_link_libraries(test_protocol
+    ${Boost_LIBRARIES}
+    Threads::Threads
+)
+
 # Enable testing
 enable_testing()
 add_test(NAME MetricsTest COMMAND test_metrics)
 add_test(NAME ConsistentHashTest COMMAND test_consistent_hash)
 add_test(NAME BufferPoolTest COMMAND test_buffer_pool)
+add_test(NAME ProtocolTest COMMAND test_protocol)
