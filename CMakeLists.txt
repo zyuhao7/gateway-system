@@ -268,6 +268,17 @@ target_link_libraries(test_auth
     OpenSSL::Crypto
 )
 
+# Rate limiter test
+add_executable(test_rate_limiter
+    tests/test_rate_limiter.cpp
+    src/rate_limiter.cpp
+)
+
+target_link_libraries(test_rate_limiter
+    ${Boost_LIBRARIES}
+    Threads::Threads
+)
+
 # Enable testing
 enable_testing()
 add_test(NAME MetricsTest COMMAND test_metrics)
@@ -275,3 +286,4 @@ add_test(NAME ConsistentHashTest COMMAND test_consistent_hash)
 add_test(NAME BufferPoolTest COMMAND test_buffer_pool)
 add_test(NAME ProtocolTest COMMAND test_protocol)
 add_test(NAME AuthTest COMMAND test_auth)
+add_test(NAME RateLimiterTest COMMAND test_rate_limiter)
