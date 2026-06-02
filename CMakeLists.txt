@@ -328,3 +328,12 @@ add_test(NAME AuthTest COMMAND test_auth)
 add_test(NAME RateLimiterTest COMMAND test_rate_limiter)
 add_test(NAME RoomTest COMMAND test_room)
 add_test(NAME IntegrationTest COMMAND integration_test)
+
+# Examples
+option(BUILD_EXAMPLES "Build example applications" ON)
+if(BUILD_EXAMPLES)
+    add_subdirectory(examples/im)
+    add_subdirectory(examples/game)
+    add_subdirectory(examples/iot)
+    add_subdirectory(examples/push)
+endif()
