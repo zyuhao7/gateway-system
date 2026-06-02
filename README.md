@@ -242,13 +242,18 @@ ctest --output-on-failure
 
 ## 文档
 
-- [架构设计](docs/ARCHITECTURE.md) - 系统架构与模块设计
-- [性能报告](docs/PERFORMANCE.md) - 性能测试结果
+- [架构设计](ARCHITECTURE.md) - 系统架构与模块设计
+- [性能测试报告](PERFORMANCE_RESULTS.md) - 真实性能测试数据
 - [压测指南](docs/STRESS_TEST_GUIDE.md) - 压测执行指南
 - [压测结果](docs/STRESS_TEST_RESULTS.md) - 压测数据报告
 - [对象池优化](docs/OBJECT_POOL_OPTIMIZATION.md) - 缓冲池实现
 - [Grafana 指南](docs/GRAFANA_GUIDE.md) - 监控面板使用
 - [生产部署](docs/PRODUCTION_DEPLOYMENT.md) - 生产环境部署
+- [认证实现](docs/AUTH_IMPLEMENTATION.md) - JWT认证系统
+- [速率限制](docs/RATE_LIMITER_IMPLEMENTATION.md) - 三级限流实现
+- [协议实现](docs/PROTOCOL_IMPLEMENTATION.md) - 消息协议设计
+- [消息存储](docs/MESSAGE_STORAGE_IMPLEMENTATION.md) - RocksDB持久化
+- [WebSocket实现](docs/WEBSOCKET_IMPLEMENTATION.md) - WebSocket服务器
 
 ## 开发进度
 
