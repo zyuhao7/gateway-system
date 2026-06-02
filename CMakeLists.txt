@@ -279,6 +279,27 @@ target_link_libraries(test_rate_limiter
     Threads::Threads
 )
 
+# Stress test
+add_executable(stress_test
+    tests/stress_test.cpp
+)
+
+target_link_libraries(stress_test
+    ${Boost_LIBRARIES}
+    Threads::Threads
+)
+
+# Room test
+add_executable(test_room
+    tests/test_room.cpp
+    src/room.cpp
+)
+
+target_link_libraries(test_room
+    ${Boost_LIBRARIES}
+    Threads::Threads
+)
+
 # Enable testing
 enable_testing()
 add_test(NAME MetricsTest COMMAND test_metrics)
@@ -287,3 +308,4 @@ add_test(NAME BufferPoolTest COMMAND test_buffer_pool)
 add_test(NAME ProtocolTest COMMAND test_protocol)
 add_test(NAME AuthTest COMMAND test_auth)
 add_test(NAME RateLimiterTest COMMAND test_rate_limiter)
+add_test(NAME RoomTest COMMAND test_room)
