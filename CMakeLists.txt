@@ -300,6 +300,24 @@ target_link_libraries(test_room
     Threads::Threads
 )
 
+# Integration test
+add_executable(integration_test
+    tests/integration_test.cpp
+    src/auth.cpp
+    src/rate_limiter.cpp
+    src/room.cpp
+    src/protocol.cpp
+    src/message_storage.cpp
+)
+
+target_link_libraries(integration_test
+    ${Boost_LIBRARIES}
+    Threads::Threads
+    OpenSSL::SSL
+    OpenSSL::Crypto
+    ${ROCKSDB_LIB}
+)
+
 # Enable testing
 enable_testing()
 add_test(NAME MetricsTest COMMAND test_metrics)
@@ -309,3 +327,4 @@ add_test(NAME ProtocolTest COMMAND test_protocol)
 add_test(NAME AuthTest COMMAND test_auth)
 add_test(NAME RateLimiterTest COMMAND test_rate_limiter)
 add_test(NAME RoomTest COMMAND test_room)
+add_test(NAME IntegrationTest COMMAND integration_test)
