@@ -255,9 +255,23 @@ target_link_libraries(test_protocol
     Threads::Threads
 )
 
+# Auth test
+add_executable(test_auth
+    tests/test_auth.cpp
+    src/auth.cpp
+)
+
+target_link_libraries(test_auth
+    ${Boost_LIBRARIES}
+    Threads::Threads
+    OpenSSL::SSL
+    OpenSSL::Crypto
+)
+
 # Enable testing
 enable_testing()
 add_test(NAME MetricsTest COMMAND test_metrics)
 add_test(NAME ConsistentHashTest COMMAND test_consistent_hash)
 add_test(NAME BufferPoolTest COMMAND test_buffer_pool)
 add_test(NAME ProtocolTest COMMAND test_protocol)
+add_test(NAME AuthTest COMMAND test_auth)
