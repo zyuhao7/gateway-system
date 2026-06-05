@@ -3,7 +3,20 @@
 
 set -e
 
-echo "=== Gateway Million Connection Stress Test ==="
+echo "=== Gateway Stress Test ==="
+echo ""
+
+# 解析参数
+CUSTOM_CONNECTIONS=""
+if [ $# -ge 1 ]; then
+    CUSTOM_CONNECTIONS="$1"
+    echo "Custom test: $CUSTOM_CONNECTIONS connections"
+else
+    echo "Usage: $0 [connections]"
+    echo "  Example: $0 10000"
+    echo ""
+    echo "Running default test scenarios..."
+fi
 echo ""
 
 # 检查系统限制
@@ -21,21 +34,27 @@ if ! pgrep -x "gateway_server" > /dev/null; then
 fi
 
 echo "Gateway server is running"
-echo ""
+echo "
 
 # 测试配置
 HOST="localhost"
 PORT="8080"
 
 # 测试场景
-declare -a SCENARIOS=(
-    "1000:Warmup (1K connections)"
-    "10000:Small scale (10K connections)"
-    "50000:Medium scale (50K connections)"
-    "100000:Large scale (100K connections)"
-    "500000:Massive scale (500K connections)"
-    "1000000:Million connections"
-)
+if [ -n "$CUSTOM_CONNECTIONS" ]; then
+    declare -a SCENARIOS=(
+        "$CUSTOM_CONNECTIONS:Custom test ($CUSTOM_CONNECTIONS connections)"
+    )
+else
+    declare -a SCENARIOS=(
+        "1000:Warmup (1K connections)"
+        "10000:Small scale (10K connections)"
+     "50000:Medium scale (50K connections)"
+        "100000:Large scale (100K connections)"
+        "500000:Massive scale (500K connections)"
+        "1000000:Million connections"
+    )
+fi
 
 # 运行测试
 for scenario in "${SCENARIOS[@]}"; do
