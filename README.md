@@ -234,9 +234,9 @@ ctest --output-on-failure
 # 缓冲池性能测试
 ./benchmark_buffer_pool
 
-# 压测（自动化脚本）
-./scripts/stress_test.sh
-```
+# 压测 默认是全连接测试(1K, 5K, 10K, 100K, 1M, 也可以手动指定要测试的连接数)
+./scripts/stress_test.sh 5000
+```默认
 
 详见: [压测指南](docs/STRESS_TEST_GUIDE.md)
 
