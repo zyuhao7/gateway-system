@@ -8,8 +8,12 @@ namespace gateway {
 
 Server::Server(asio::io_context& io_context, uint16_t port)
     : acceptor_io_context_(io_context)
-    , acceptor_(io_context, tcp::endpoint(tcp::v4(), port))
+    , acceptor_(io_context)
     , use_pool_(false) {
+    acceptor_.open(tcp::v4());
+    acceptor_.set_option(asio::socket_base::reuse_address(true));
+    acceptor_.bind(tcp::endpoint(tcp::v4(), port));
+    acceptor_.listen();
     std::cout << "Server listening on port " << port << " (single-threaded)" << std::endl;
 }
 
@@ -18,8 +22,12 @@ Server::Server(asio::io_context& acceptor_io_context,
                uint16_t port)
     : acceptor_io_context_(acceptor_io_context)
     , pool_(pool)
-    , acceptor_(acceptor_io_context, tcp::endpoint(tcp::v4(), port))
+    , acceptor_(acceptor_io_context)
     , use_pool_(true) {
+    acceptor_.open(tcp::v4());
+    acceptor_.set_option(asio::socket_base::reuse_address(true));
+    acceptor_.bind(tcp::endpoint(tcp::v4(), port));
+    acceptor_.listen();
     std::cout << "Server listening on port " << port
               << " (multi-threaded, pool size: " << pool->size() << ")" << std::endl;
 }

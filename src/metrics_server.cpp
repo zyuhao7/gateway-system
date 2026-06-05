@@ -11,7 +11,11 @@
 
 MetricsServer::MetricsServer(asio::io_context& io_context, uint16_t port)
     : io_context_(io_context)
-    , acceptor_(io_context, tcp::endpoint(tcp::v4(), port)) {
+    , acceptor_(io_context) {
+    acceptor_.open(tcp::v4());
+    acceptor_.set_option(asio::socket_base::reuse_address(true));
+    acceptor_.bind(tcp::endpoint(tcp::v4(), port));
+    acceptor_.listen();
     std::cout << "Metrics server listening on port " << port << std::endl;
 }
 
